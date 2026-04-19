@@ -1,0 +1,20 @@
+services:
+  line-bot:
+    build: .
+    image: rag-kit-line-bot:dev
+    container_name: huwei-landmarks-line-bot
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # 預設值可被 .env 覆寫
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/healthz\", timeout=3)'"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
