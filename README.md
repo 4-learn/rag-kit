@@ -155,11 +155,34 @@ pipeline = RAGPipeline(data_source, retriever, MyGenerator())
 
 ```bash
 pytest                          # 跑所有單元測試
-python tests/evaluate.py        # 跑 golden 評估（需 GOOGLE_API_KEY）
+python tests/evaluate.py        # 跑 golden 評估（需 GEMINI_API_KEY）
 ```
 
 單元測試 **不呼叫外部 API**——只用本地 fixture 驗證 Data/Retriever 行為。
 `evaluate.py` 才會真的打 Gemini。
+
+## Golden Evaluation
+
+`tests/evaluate.py` 把 `data/golden/` 底下的照片丟給 pipeline，比對辨識結果是否等於檔名前綴的地標名稱。檔名 pattern：`{地標名}-{編號}-{來源}.{ext}`，例：`虎尾驛-1-wiki.jpg`。
+
+### 自動跑：每個 PR
+
+`.github/workflows/pr-evaluate.yml` 在 PR 開啟 / 推新 commit 時觸發，跑 5 張代表照片（free-tier 20 RPD 安全），把 markdown 結果貼回 PR comment。需要 repo secret `GEMINI_API_KEY`。
+
+評估失敗 / 分數降低**不會** fail PR，只是 informational。
+
+### 手動跑
+
+```bash
+# 預設 5 張，輸出 markdown
+python tests/evaluate.py
+
+# 給 CI 解析的 JSON
+python tests/evaluate.py --output=json
+
+# 全跑（21 張，會吃光當日 free-tier 配額）
+python tests/evaluate.py --limit 0
+```
 
 ## Run the LINE BOT locally
 
